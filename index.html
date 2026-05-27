@@ -47,11 +47,11 @@
 function sendData() {
   const key = "4DJYWFHXB18MR0BE"; // ← ใส่ key ของคุณตรงนี้
   const f1 = document.getElementById("field1").value;
-  const f2 = document.getElementById("field2").value;
+  const f2 = document.getElementById("field3").value;
 
   document.getElementById("status").innerText = "กำลังส่ง...";
 
-  fetch(`https://api.thingspeak.com/update?api_key=${key}&field1=${f1}&field2=${f2}`)
+  fetch(`https://api.thingspeak.com/update?api_key=${key}&field1=${f1}&field3=${f2}`)
     .then(r => r.text())
     .then(res => {
       if (res === "0") {
