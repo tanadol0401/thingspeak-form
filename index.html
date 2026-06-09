@@ -9,7 +9,7 @@
       font-family: sans-serif;
       padding: 16px;
     }
-    label { display: block; margin-top: 12px; margin-bottom: 4px; }
+    label { display: block; margin-top: 12px; margin-bottom: 4px; color: #aaa; font-size: 13px; }
     input {
       width: 100%;
       padding: 8px;
@@ -19,7 +19,30 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
-    button {
+    .key-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .key-row input { flex: 1; }
+    .btn-save {
+      padding: 9px 14px;
+      background: #1e6fbf;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    .btn-save:hover { background: #1a5fa0; }
+    #key-status { font-size: 12px; color: #f5a623; margin-top: 4px; min-height: 16px; }
+    .divider {
+      border: none;
+      border-top: 1px solid #333;
+      margin: 16px 0;
+    }
+    button.submit-btn {
       margin-top: 16px;
       padding: 10px 24px;
       background: #ff6600;
@@ -28,42 +51,79 @@
       border-radius: 4px;
       cursor: pointer;
       width: 100%;
+      font-size: 14px;
     }
-    #status { margin-top: 12px; color: #73bf69; }
+    #status { margin-top: 12px; color: #73bf69; font-size: 13px; }
   </style>
 </head>
 <body>
 
+  <!-- Write API Key -->
+  <label>🔑 Write API Key</label>
+  <div class="key-row">
+    <input type="text" id="apikey" placeholder="ใส่ Write API Key ของคุณ">
+    <button class="btn-save" onclick="saveKey()">💾 บันทึก</button>
+  </div>
+  <div id="key-status"></div>
+
+  <hr class="divider">
+
+  <!-- ข้อมูลที่ส่ง -->
   <label>ค่าปิด 🛑</label>
   <input type="number" id="field1" placeholder="กรอกค่าที่ต้องการให้หยุดทำงาน">
 
   <label>ค่าเปิด ✅️</label>
   <input type="number" id="field3" placeholder="กรอกค่าที่ต้องการให้ทำงาน">
 
-  <button onclick="sendData()">📤 Submit</button>
+  <button class="submit-btn" onclick="sendData()">📤 Submit</button>
   <div id="status"></div>
 
 <script>
-function sendData() {
-  const key = "4DJYWFHXB18MR0BE"; // ← ใส่ key ของคุณตรงนี้
-  const f1 = document.getElementById("field1").value;
-  const f2 = document.getElementById("field3").value;
+  const KEY_STORAGE = "thingspeak_write_key";
 
-  document.getElementById("status").innerText = "กำลังส่ง...";
+  // โหลด key ที่บันทึกไว้
+  window.onload = function() {
+    const saved = localStorage.getItem(KEY_STORAGE);
+    if (saved) {
+      document.getElementById("apikey").value = saved;
+      document.getElementById("key-status").innerText = "✅ ใช้ key ที่บันทึกไว้";
+    }
+  };
 
-  fetch(`https://api.thingspeak.com/update?api_key=${key}&field1=${f1}&field3=${f2}`)
-    .then(r => r.text())
-    .then(res => {
-      if (res === "0") {
-        document.getElementById("status").innerText = "❌ ส่งไม่สำเร็จ (รอ 15 วิแล้วลองใหม่)";
-      } else {
-        document.getElementById("status").innerText = "✅ ส่งสำเร็จ! Entry: " + res;
-      }
-    })
-    .catch(e => {
-      document.getElementById("status").innerText = "❌ Error: " + e;
-    });
-}
+  function saveKey() {
+    const key = document.getElementById("apikey").value.trim();
+    if (!key) {
+      document.getElementById("key-status").innerText = "❌ กรุณาใส่ API Key";
+      return;
+    }
+    localStorage.setItem(KEY_STORAGE, key);
+    document.getElementById("key-status").innerText = "✅ บันทึก Key แล้ว";
+  }
+
+  function sendData() {
+    const key = document.getElementById("apikey").value.trim();
+    if (!key) {
+      document.getElementById("status").innerText = "❌ กรุณาใส่ Write API Key ก่อน";
+      return;
+    }
+    const f1 = document.getElementById("field1").value;
+    const f3 = document.getElementById("field3").value;
+
+    document.getElementById("status").innerText = "กำลังส่ง...";
+
+    fetch(`https://api.thingspeak.com/update?api_key=${key}&field1=${f1}&field3=${f3}`)
+      .then(r => r.text())
+      .then(res => {
+        if (res === "0") {
+          document.getElementById("status").innerText = "❌ ส่งไม่สำเร็จ (รอ 15 วิแล้วลองใหม่)";
+        } else {
+          document.getElementById("status").innerText = "✅ ส่งสำเร็จ! Entry: " + res;
+        }
+      })
+      .catch(e => {
+        document.getElementById("status").innerText = "❌ Error: " + e;
+      });
+  }
 </script>
 </body>
 </html>
